@@ -119,7 +119,7 @@ class BackgroundProcessor:
                 y = (target_h - image.size[1]) // 2
                 
                 background.paste(image, (x, y), image)
-            
+            print(f"save image to {output_path}")
             # Convert to RGB and save
             final_image = background.convert("RGB")
             final_image.save(output_path)

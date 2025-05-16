@@ -68,28 +68,30 @@ class ImageService:
                 os.unlink(temp_input_path)
             raise e
 
-    async def process_path_image(self, image_path: str, bg_color: list = [255, 255, 255], output_filename: str = None):
-        if not os.path.exists(image_path):
-            raise Exception(f"Invalid path: {image_path}")
-
+    async def process_path_image(self, input_image: str, bg_color: list = [255, 255, 255], output_image: str = None):
+        if not os.path.exists(input_image):
+            raise Exception(f"Invalid path: {input_image}")
+        print(f"input_image: {input_image} , output_image: {output_image} , bg_color: {bg_color}")
         try:
             # 1. Call segmentation service
-            temp_output_name = f"segmented_{os.path.basename(image_path)}"
-            success, segmented_path = self.segmentation_service.segment_image(image_path, temp_output_name)
+            temp_output_name = f"segmented_{os.path.basename(input_image)}"
+            print(f"query segmentation service temp_output_name: {temp_output_name}")
+            success, segmented_path = self.segmentation_service.segment_image(input_image, temp_output_name)
             
             if not success:
                 raise Exception(f"Segmentation failed: {segmented_path}")
             
             # 2. Add background and adjust size
             target_aspect_ratio = [9, 16]
-            
-            if not output_filename:
-                name, _ = os.path.splitext(os.path.basename(image_path))
+            print(f"target_aspect_ratio: {target_aspect_ratio} , output_image: {output_image}")
+            if not output_image:
+                name, _ = os.path.splitext(os.path.basename(input_image))
                 aspect_str = f"_9_16"
-                output_filename = f"{name}_processed{aspect_str}.jpg"
-            
-            final_output_path = os.path.join(self.OUTPUT_DIR, output_filename)
-            
+                output_image = f"{name}_processed{aspect_str}.jpg"
+            print(f"target_aspect_ratio: {target_aspect_ratio} , output_image: {output_image}")
+
+            final_output_path = os.path.join(self.OUTPUT_DIR, output_image)
+            print(f"final_output_path: {final_output_path}")
             self.background_processor.add_background(
                 image_path=segmented_path,
                 background_color=tuple(bg_color),
