@@ -35,6 +35,7 @@ async def process_base64(request: Base64Request):
 @router.post("/process/path")
 async def process_path(request: PathRequest):
     try:
+        print(f"request: {request}")
         result = await image_service.process_path_image(
             input_image=request.input_image,
             bg_color=request.bg_color,
