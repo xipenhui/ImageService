@@ -4,15 +4,18 @@ import base64
 import tempfile
 from PIL import Image
 from io import BytesIO
+from app.core.config import settings
 
 # Import custom modules
-from app.utils.segment import segment_image
-from app.utils.background import add_background
+from app.utils.segment import SegmentationService
+from app.utils.background import BackgroundProcessor
 
 class ImageService:
     def __init__(self):
-        self.OUTPUT_DIR = "output"
+        self.OUTPUT_DIR = settings.OUTPUT_DIR
         os.makedirs(self.OUTPUT_DIR, exist_ok=True)
+        self.segmentation_service = SegmentationService()
+        self.background_processor = BackgroundProcessor()
 
     async def process_base64_image(self, image_base64: str, bg_color: list = [255, 255, 255], aspect_ratio: list = [9, 16]):
         try:
@@ -28,7 +31,7 @@ class ImageService:
             
             # 2. Call segmentation service
             temp_output_name = f"temp_segmented_{os.path.basename(temp_input_path)}"
-            success, segmented_path = segment_image(temp_input_path, temp_output_name)
+            success, segmented_path = self.segmentation_service.segment_image(temp_input_path, temp_output_name)
             
             if not success:
                 os.unlink(temp_input_path)
@@ -38,7 +41,7 @@ class ImageService:
             target_aspect_ratio = tuple(aspect_ratio) if aspect_ratio else None
             final_output_path = os.path.join(self.OUTPUT_DIR, f"processed_{os.path.basename(temp_output_name)}")
             
-            add_background(
+            self.background_processor.add_background(
                 image_path=segmented_path,
                 background_color=tuple(bg_color),
                 output_path=final_output_path,
@@ -72,7 +75,7 @@ class ImageService:
         try:
             # 1. Call segmentation service
             temp_output_name = f"segmented_{os.path.basename(image_path)}"
-            success, segmented_path = segment_image(image_path, temp_output_name)
+            success, segmented_path = self.segmentation_service.segment_image(image_path, temp_output_name)
             
             if not success:
                 raise Exception(f"Segmentation failed: {segmented_path}")
@@ -87,7 +90,7 @@ class ImageService:
             
             final_output_path = os.path.join(self.OUTPUT_DIR, output_filename)
             
-            add_background(
+            self.background_processor.add_background(
                 image_path=segmented_path,
                 background_color=tuple(bg_color),
                 output_path=final_output_path,
