@@ -12,9 +12,9 @@ class Base64Request(BaseModel):
     aspect_ratio: Optional[List[int]] = [9, 16]
 
 class PathRequest(BaseModel):
-    path: str
+    input_image: str
     bg_color: Optional[List[int]] = [255, 255, 255]
-    output_filename: Optional[str] = None
+    output_image: Optional[str] = None
 
 @router.get("/hello")
 async def say_hello():
@@ -36,9 +36,9 @@ async def process_base64(request: Base64Request):
 async def process_path(request: PathRequest):
     try:
         result = await image_service.process_path_image(
-            image_path=request.path,
+            input_image=request.input_image,
             bg_color=request.bg_color,
-            output_filename=request.output_filename
+            output_image=request.output_image
         )
         return result
     except Exception as e:
