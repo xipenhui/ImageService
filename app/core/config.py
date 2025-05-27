@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
 
+    # 背景颜色
+    BG_COLOR: list[list] = [[255, 255, 255], [239, 236, 229]]
+    RANDOM_BG_ENABLE: bool = True
+
     class Config:
         env_file = ".env"
         case_sensitive = True

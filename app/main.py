@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from app.api.routes import router as image_router
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi import applications
+import uvicorn
 
 # 猴子补丁替换 CDN 链接
 def swagger_monkey_patch(*args, **kwargs):
@@ -21,3 +22,11 @@ app.include_router(image_router, prefix="/api")
 @app.get("/hello")
 def hello():
     return {"message": "Hello, world"}
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=51060,
+        reload=False
+    )

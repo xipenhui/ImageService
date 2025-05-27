@@ -75,8 +75,7 @@ class BackgroundProcessor:
         image_path: str,
         background_color: Tuple[int, int, int],
         output_path: str,
-        target_aspect_ratio: Optional[Tuple[int, int]] = None,
-        sharpen_method: Optional[Literal['sharpen', 'unsharp']] = None
+        target_aspect_ratio: Optional[Tuple[int, int]] = None
     ) -> None:
         """
         Add background to image and optionally adjust aspect ratio.
@@ -94,10 +93,8 @@ class BackgroundProcessor:
         try:
             # Open and convert image to RGBA
             image = Image.open(image_path).convert("RGBA")
+            image = self.extract_subject_with_padding(image)
             
-            # Apply sharpening if method specified
-            if sharpen_method:
-                image = self.sharpen_image(image, method=sharpen_method)
             
             if not target_aspect_ratio:
                 logger.info("No target aspect ratio set, using original size")
@@ -128,6 +125,40 @@ class BackgroundProcessor:
         except Exception as e:
             logger.error(f"Error processing image: {str(e)}")
             raise
+
+    def extract_subject_with_padding(self, image: Image.Image, padding: int = 20) -> Image.Image:
+    
+        if image.mode != "RGBA":
+            image = image.convert("RGBA")
+
+        # 获取 alpha 通道（透明度）
+        alpha = image.split()[3]
+
+        # 使用 getbbox 得到非透明区域边框 (left, upper, right, lower)
+        bbox = alpha.getbbox()
+        if bbox is None:
+            raise ValueError("图像中没有非透明内容，主体不存在")
+
+        left, upper, right, lower = bbox
+
+        # 主体宽高
+        subject_w = right - left
+        subject_h = lower - upper
+
+        # 新图大小 = 主体 + 2 * padding
+        new_w = subject_w + 2 * padding
+        new_h = subject_h + 2 * padding
+
+        # 创建新图背景，保持 RGBA
+        new_image = Image.new("RGBA", (new_w, new_h), (0, 0, 0, 0))
+
+        # 将原图的主体区域裁剪出来
+        subject = image.crop((left, upper, right, lower))
+
+        # 粘贴到新图中央
+        new_image.paste(subject, (padding, padding), subject)
+
+        return new_image
 
 def main():
     """Example usage of BackgroundProcessor"""

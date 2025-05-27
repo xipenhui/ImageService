@@ -26,7 +26,7 @@ source venv/bin/activate  # Linux/Mac
 
 3. 安装依赖：
 ```bash
-pip install -r requirments.txt .
+pip install -e .
 ```
 
 启动服务
